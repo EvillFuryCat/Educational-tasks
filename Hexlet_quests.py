@@ -140,3 +140,47 @@ print(greet('Bob'))
 
 a, b = input().split()
 print(int(a) + int(b))
+
+#мемоизирующий декоратор "memoizing". Но на этот раз декоратор должен принимать аргумент, задающий максимальное количество
+#  запоминаемых значений. При превышении количества запомненных значений лишние должны быть отброшены, причём сначала — самые старые!
+from functools import wraps
+
+
+def memoizing(limit):
+    def memoized(function):
+        memory = {}
+
+        @wraps(function)
+        def inner(items):
+            memoized_result = memory.get(items)
+            if memoized_result is None:
+                memoized_result = function(items)
+                memory[items] = memoized_result
+            if len(list(memory.values())) > limit:
+                memory.pop(list(memory)[0])
+            return memoized_result
+        return inner
+    return memoized
+
+#написать функцию non_empty_truths(), которая с помощью генераторов списков должна вычислять копию входного списка списков,
+#  "очищенную" от ложных элементов (не только False, а любых ложных!), а заодно и от пустых списков — таковые могу присутствовать сами по себе
+#  или могут получаться после отбрасывания из них всех элементов.
+#from solution import non_empty_truths
+#non_empty_truths([])  # нечего отбрасывать, это тоже нормально
+# >>>[]
+#non_empty_truths([[], []])  # пустые отбрасываем
+# >>>[]
+#non_empty_truths([[0]])  # чистим, чистые, но пустые тоже отбрасываем
+# >>>[]
+#non_empty_truths([[0, ""], [False, None]])  # в Python многое считается ложным
+# >>>[]
+#non_empty_truths([[0, 1, 2], [], [], [False, True, 42]])
+# >>>[[1, 2], [True, 42]]
+def non_empty_truths(items):
+    return [
+        result for result in
+        [[elem for elem in item if elem]
+         for item in items
+         ]
+        if result
+    ]
